@@ -24,6 +24,7 @@ ARG VERSION=0.0.0-dev
 WORKDIR /src
 COPY ["Directory.Packages.props", "global.json", "./"]
 COPY ["Lingarr.Server/Lingarr.Server.csproj", "Lingarr.Server/"]
+COPY ["Lingarr.Contracts/Lingarr.Contracts.csproj", "Lingarr.Contracts/"]
 COPY ["Lingarr.Core/Lingarr.Core.csproj", "Lingarr.Core/"]
 COPY ["Lingarr.Migrations/Lingarr.Migrations.csproj", "Lingarr.Migrations/"]
 RUN dotnet restore "./Lingarr.Server/./Lingarr.Server.csproj" --arch $TARGETARCH
