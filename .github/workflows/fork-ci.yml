@@ -1,6 +1,6 @@
 # CI for the Dezoxy/lingarr fork: test every push, publish images only from release tags.
-# Upstream workflows (ci, docker-build, docs, pr-comment) are disabled in this fork; they target
-# upstream's branches and Docker Hub secrets.
+# Upstream's workflows (ci, docker-build, docs, pr-comment) are removed on this branch: they target
+# upstream's branches and Docker Hub secrets, and this job covers their checks.
 name: Fork CI
 
 on:
