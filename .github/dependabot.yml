@@ -1,31 +1,22 @@
+# Fork configuration: npm and NuGet versions follow upstream releases, so only the fork's own
+# pins are updated here. Vulnerable dependencies still get Dependabot security update PRs.
 version: 2
 updates:
-  # Frontend dependencies
-  - package-ecosystem: "npm"
-    directory: "/Lingarr.Client"
-    schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
-    groups:
-      npm-minor-and-patch:
-        update-types:
-          - "minor"
-          - "patch"
-      npm-major:
-        update-types:
-          - "major"
-
-  # Backend dependencies
-  - package-ecosystem: "nuget"
+  - package-ecosystem: "github-actions"
     directory: "/"
+    target-branch: "homelab"
     schedule:
-      interval: "monthly"
-    open-pull-requests-limit: 5
+      interval: "weekly"
+    cooldown:
+      default-days: 7 # let new releases settle before pinning them
     groups:
-      nuget-minor-and-patch:
-        update-types:
-          - "minor"
-          - "patch"
-      nuget-major:
-        update-types:
-          - "major"
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "docker"
+    directory: "/Lingarr.Server"
+    target-branch: "homelab"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
