@@ -34,6 +34,18 @@ git push origin v1.4.0-anthropic.1
 gh attestation verify oci://ghcr.io/dezoxy/lingarr:v1.4.0-anthropic.1 --repo Dezoxy/lingarr
 ```
 
+## Contributing and security
+
+- `homelab` and `main` accept changes only through pull requests (squash merge), and only after
+  every check below passes. Nobody, including the owner, can push to them, force-push or delete them.
+  Release tags cannot be moved or deleted.
+- Checks on every pull request: server, migration and client tests; gitleaks over the full history;
+  actionlint and zizmor on the workflows; Trivy dependency scan; dependency review; CodeQL (C#,
+  JavaScript/TypeScript, Actions); and the image build with smoke test and Trivy image scan.
+- Actions are restricted to an allowlist and must be pinned to a commit SHA; Dependabot keeps the pins
+  and Dockerfile base images current. Secret scanning push protection is on.
+- Report vulnerabilities privately, see [SECURITY.md](SECURITY.md).
+
 ## Retiring the fork
 
 When an upstream release contains the fix, switch the deployment back to `lingarr/lingarr:<version>`
