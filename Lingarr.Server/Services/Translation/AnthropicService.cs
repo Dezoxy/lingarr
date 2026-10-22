@@ -13,6 +13,7 @@ namespace Lingarr.Server.Services.Translation;
 
 public class AnthropicService : BaseLanguageService, ITranslationService, IBatchTranslationService, IProofreadService
 {
+    private const string BatchToolName = "record_translation_batch";
     private readonly string? _endpoint = "https://api.anthropic.com/v1";
     private readonly HttpClient _httpClient;
     private readonly IRequestTemplateService _requestTemplateService;
@@ -346,6 +347,9 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
         CancellationToken cancellationToken)
     {
         var replacements = GetBatchReplacements(_model!, JsonSerializer.Serialize(subtitleBatch));
+        // tool_choice is "auto" (newer models reject forced tool use), so the prompt asks for the call.
+        replacements["systemPrompt"] +=
+            $"\n\nReturn the translations by calling the {BatchToolName} tool once, with one item per input subtitle.";
         var bodyJson = _requestTemplateService.BuildRequestBody(_requestTemplate!, replacements);
         bodyJson = _requestTemplateService.SetRequestFields(bodyJson, new Dictionary<string, object?>
         {
@@ -353,11 +357,15 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
             {
                 new
                 {
-                    name = "record_translation_batch",
+                    name = BatchToolName,
                     description = "Record batch translation results using well-structured JSON.",
+                    // strict makes the API validate the input against the schema, so translations
+                    // always arrives as an array (without it some models return the array as a string)
+                    strict = true,
                     input_schema = new
                     {
                         type = "object",
+                        additionalProperties = false,
                         properties = new Dictionary<string, object>
                         {
                             ["translations"] = new
@@ -366,6 +374,7 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
                                 items = new
                                 {
                                     type = "object",
+                                    additionalProperties = false,
                                     properties = new Dictionary<string, object>
                                     {
                                         ["position"] = new
@@ -388,10 +397,11 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
                     }
                 }
             },
+            // Forced tool use ("tool"/"any") returns a 400 on current models such as claude-sonnet-5-5
             ["tool_choice"] = new
             {
-                type = "tool",
-                name = "record_translation_batch"
+                type = "auto",
+                disable_parallel_tool_use = true
             }
         });
 
@@ -455,6 +465,12 @@ public class AnthropicService : BaseLanguageService, ITranslationService, IBatch
 
         try
         {
+            // Without strict tool validation (older models, proxies) the array can arrive as a JSON string
+            if (translationsProperty.ValueKind == JsonValueKind.String)
+            {
+                translationsProperty = JsonSerializer.Deserialize<JsonElement>(translationsProperty.GetString()!);
+            }
+
             var translatedItems = translationsProperty.EnumerateArray()
                 .Select(t => new StructuredBatchResponse
                 {

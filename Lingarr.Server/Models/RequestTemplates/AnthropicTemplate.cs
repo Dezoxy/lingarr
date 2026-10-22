@@ -8,7 +8,8 @@ public class AnthropicTemplate
     public string Model { get; set; } = "{model}";
     
     [JsonPropertyName("max_tokens")] 
-    public int MaxTokens { get; set; } = 1024;
+    // Batch responses return every translated line in one tool call; 1024 truncated them (#444)
+    public int MaxTokens { get; set; } = 16000;
     
     [JsonPropertyName("system")] 
     public string System { get; set; } = "{systemPrompt}";
